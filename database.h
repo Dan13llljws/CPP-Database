@@ -4,12 +4,16 @@
 
 namespace db{
     class database {
-    public:
-        std::vector<table> tables;
+    private:
+        std::vector<table> t;
         std::string db_name;
-
-        database(){};
-        database(std::string name) : db_name(name){};
+    public:
+        database();
+        database(std::string name);
+        table operator[](int x);
+        std::string name();
+        void set_name(std::string name);
+        std::vector<table> tables();
         bool create_table(std::string name, std::vector<std::string> cn, std::vector<std::string> ct);
         bool drop_table(std::string name);
     };

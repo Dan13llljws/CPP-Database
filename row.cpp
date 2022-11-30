@@ -9,7 +9,7 @@ namespace db{
         return r.size();
     }
 
-    rowtypes row::operator[](int n){
-        return r[n];
+    rowtypes& row::operator[](int x){
+        return r[x];
     }
 }
