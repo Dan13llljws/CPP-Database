@@ -1,0 +1,12 @@
+# ignore executables 
+*.exe
+
+.vscode/*
+
+# ignore local testing file
+a.cpp
+
+*.bat
+*.txt
+*.
+
