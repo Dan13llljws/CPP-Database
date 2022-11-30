@@ -125,8 +125,8 @@ void load(){
 
     for (int i = 0; i < db_cnt; i++){
         string db_name;
-        for (int j = 0; j < 4; j++) db_name.pop_back();
         list_fs >> db_name;
+        for (int j = 0; j < 4; j++) db_name.pop_back();
         dbs.push_back(database(db_name));
     }
     
