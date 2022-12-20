@@ -58,39 +58,46 @@ vector<user> users;
 user cur_user;
 
 void menu(){
-    // system("cls");
-    cout << "1. CREATE DATABASE" << endl;
-    cout << "2. USE DATABASE" << endl;
-    cout << "3. SEE A LIST OF DATABASES" << endl;
-    cout << "4. EXIT" << endl;
 
+    auto display_options = [&](){
+        cout << "1. CREATE DATABASE" << endl;
+        cout << "2. USE DATABASE" << endl;
+        cout << "3. SEE A LIST OF DATABASES" << endl;
+        cout << "4. EXIT" << endl;
+    };
+
+    display_options();
     int inp;
     cin >> inp;
-    if (inp == 1){
-        cout << "Enter name of the new database: ";
-        string tmp;
-        cin >> tmp;
-        if (db_search(tmp)){
-            cout << "ERROR! database already exist!" << endl;
-        } else {
-            create_db(tmp);
-            cout << tmp << " successfully created!" << endl;
-        }
-    } else if (inp == 2){
-        cout << "Enter name of database: ";
-        string tmp;
-        cin >> tmp;
-        if (!db_search(tmp)){
-            cout << "ERROR! database not found!" << endl;
-        } else {
-            use_db(tmp);
-            cout << tmp << " is in use!" << endl;
-        }
-    } else if (inp == 3){
-        list_db();
-    } else return;
-    
-    menu(); 
+
+    while(inp != 4){
+        if (inp == 1){
+            cout << "Enter name of the new database: ";
+            string tmp;
+            cin >> tmp;
+            if (db_search(tmp)){
+                cout << "ERROR! database already exist!" << endl;
+            } else {
+                create_db(tmp);
+                cout << tmp << " successfully created!" << endl;
+            }
+        } else if (inp == 2){
+            cout << "Enter name of database: ";
+            string tmp;
+            cin >> tmp;
+            if (!db_search(tmp)){
+                cout << "ERROR! database not found!" << endl;
+            } else {
+                use_db(tmp);
+                cout << tmp << " is in use!" << endl;
+            }
+        } else if (inp == 3){
+            list_db();
+        } 
+
+        display_options();
+        cin >> inp;
+    }
 }
 
 void load(){
@@ -99,23 +106,27 @@ void load(){
     ifstream ifs("users.txt");
     string buf;
     while(ifs >> buf){
+        cout <<buf << endl;
         string username, password, p;
-        vector<string> ep, vp;
 
         username = buf;
         ifs >> password;
         ifs.ignore();
 
+
+        user usr(username, password);
+
         getline(ifs, buf);
         istringstream iss(buf);
-        while(iss >> p) ep.push_back(p);
+        while(iss >> p) usr.add_edit_perm(p);
 
         getline(ifs, buf);
         iss.str(buf);
-        while(iss >> p) vp.push_back(p);
+        while(iss >> p) usr.add_view_perm(p);
 
+        users.push_back(usr);
     }
-
+    
     cout << "Loading databases..." << endl;
     
     ifstream list_fs("db_list.txt");
