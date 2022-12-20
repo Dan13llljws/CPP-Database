@@ -1,4 +1,4 @@
-# CPP Database
+# C++ Database
 
 ## A local (not so secure yet) database system implemented in C++
 ### Supports User system
