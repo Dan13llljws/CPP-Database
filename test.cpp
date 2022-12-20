@@ -1,8 +1,10 @@
 #include "database.h"
+#include "user.h"
 #include <variant>
 #include <vector>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 
 using namespace std;
 using namespace db;
@@ -52,6 +54,9 @@ void create_db(string name){
     dbs.push_back(database(name));
 }
 
+vector<user> users;
+user cur_user;
+
 void menu(){
     // system("cls");
     cout << "1. CREATE DATABASE" << endl;
@@ -88,35 +93,29 @@ void menu(){
     menu(); 
 }
 
-void save(){
-    cout << "Creating database list..." << endl;
-
-    ofstream ofs("db_list.txt");
-    ofs << (int)dbs.size() << endl;
-    
-    for (auto db : dbs){
-        ofs << db.name() + ".txt" << endl;
-    }
-    
-    cout << "Database list created successfully!" << endl;
-
-    for (auto db : dbs){
-        string f = db.name();
-        cout << "Saving " << f << " ..." << endl;
-        f += ".txt";
-        
-        ofstream db_file(f);
-        db_file << (int)db.tables().size() << endl;
-        
-        for (auto t : db.tables()){
-            db_file << t.table_name() << '\n';
-            t.print_table(db_file);
-        }
-    }
-    cout << "Databases saved!" << endl;
-}
-
 void load(){
+    cout << "Loading users..." << endl;
+    
+    ifstream ifs("users.txt");
+    string buf;
+    while(ifs >> buf){
+        string username, password, p;
+        vector<string> ep, vp;
+
+        username = buf;
+        ifs >> password;
+        ifs.ignore();
+
+        getline(ifs, buf);
+        istringstream iss(buf);
+        while(iss >> p) ep.push_back(p);
+
+        getline(ifs, buf);
+        iss.str(buf);
+        while(iss >> p) vp.push_back(p);
+
+    }
+
     cout << "Loading databases..." << endl;
     
     ifstream list_fs("db_list.txt");
@@ -182,9 +181,126 @@ void load(){
     cout << "Databases loaded successfully!" << endl;
 }
 
+
+bool check_username(string username){
+    for (user usr : users){
+        if (username == usr.get_name()){
+            cur_user = usr;
+            return true;
+        }
+    }
+    return false;
+}
+
+bool check_password(string password){
+    return password == cur_user.get_pass();
+}
+
+bool valid_password(string password){
+    if ((int)password.size() < 8) cout << "Password too short! ";
+    if ((int)password.size() > 20) cout << "Password too long! ";
+    for (char c : password){
+        if (!isdigit(c) && !(c <= 'z' && c >= 'a') && !(c <= 'Z' && c >= 'A')){
+            cout << "Password contains character \'" << c << "\'! ";
+            return false;
+        }
+    }
+    return true;
+}
+
+void sign_up(){
+    string username;
+    cout << "Enter the username: ";
+    cin >> username;
+    while(check_username(username)){
+        cout << "User already exist! Please Enter another username: ";
+        cin >> username;
+    }
+    string password;
+    cout << "Enter the password (Password must contain 8-20 alphanumeric characters): ";
+    cin >> password;
+    while(!valid_password(password)){
+        cout << "Enter a new password: ";
+        cin >> password;
+    }
+    users.push_back(user(username, password));
+    cur_user = users.back();
+}
+
+void login(){
+    cout << "Enter Username: ";
+    string username;
+    cin >> username;
+    while(true){
+        while(!check_username(username)){
+            cout << "User do not exist!" << endl;
+            cout << "Enter 'c' to create new user: ";
+            cin >> username;
+            if (username == "c" || username == "C"){
+                sign_up();
+                return;
+            }
+        }
+        cout << "Enter password: ";
+        string password;
+        cin >> password;
+        while(!check_password(password)){
+            cout << "Username and password mismatch!" << endl;
+            cout << "Enter 'r' to re-enter username: ";
+            cin >> password;
+            if (password == "r" || password == "R") break;
+        }
+        if (check_password(password)){
+            return;
+        }
+    }
+}
+
+void save(){
+    cout << "Creating user list..." << endl;
+
+    ofstream ofs("users.txt");
+    for (user usr : users){
+        ofs << usr.get_name() << endl;
+        ofs << usr.get_pass() << endl;
+        for (auto p : usr.get_edit_perm()) ofs << p << ' ';
+        ofs << endl;
+        for (auto p : usr.get_view_perm()) ofs << p << ' ';
+        ofs << endl;
+    }
+
+    cout << "Creating database list..." << endl;
+
+    ofs.open("db_list.txt");
+    ofs << (int)dbs.size() << endl;
+    
+    for (auto db : dbs){
+        ofs << db.name() + ".txt" << endl;
+    }
+    
+    cout << "Database list created successfully!" << endl;
+
+    for (auto db : dbs){
+        string f = db.name();
+        cout << "Saving " << f << " ..." << endl;
+        f += ".txt";
+
+        ofs.open(f); 
+        ofs << (int)db.tables().size() << endl;
+        
+        for (auto t : db.tables()){
+            ofs << t.table_name() << '\n';
+            t.print_table(ofs);
+        }
+    }
+    cout << "Databases saved!" << endl;
+}
+
 int main(){
     system("cls");
     load();
+    login();
+    cout << "Logged in Successfully!" << endl;
     menu();
     save();
     cout << "Goodbye!" << endl;
