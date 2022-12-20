@@ -1,10 +1,13 @@
-# CPP Database
+# C++ Database
 
 ## A local (not so secure yet) database system implemented in C++
+### Supports User system
 * Can be logged in by different users
 * Users have limited permissions
-* It stores data that's it (so far)
+### Supports data querying/editing
+* Each user can edit their own databases and set it to public/private
+* Each user is can view all the public databases
 
 ## How to use it 
 
-* yea im still working on this thing xd
+* WIP
