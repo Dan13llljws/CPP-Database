@@ -14,6 +14,9 @@ database cur_db;
 bool db_in_use;
 int db_name_max_len = 9;
 
+vector<user> users;
+user cur_user;
+
 void list_db(){
     for (int i = 0; i < db_name_max_len + 6; i++) cout << "=";
     cout << endl;
@@ -23,9 +26,11 @@ void list_db(){
     for (int i = 0; i < db_name_max_len + 6; i++) cout << "=";
     cout << endl;
     for (int i = 0; i < (int)dbs.size(); i++){
-        cout << "#  " << dbs[i].name();
-        for (int j = 0; j < db_name_max_len - (int)dbs[i].name().size(); j++) cout << " ";
-        cout << "  #" << endl;
+        if (cur_user.has_view_perm(dbs[i].name())){
+            cout << "#  " << dbs[i].name();
+            for (int j = 0; j < db_name_max_len - (int)dbs[i].name().size(); j++) cout << " ";
+            cout << "  #" << endl;
+        }
     }
     for (int i = 0; i < db_name_max_len + 6; i++) cout << "=";
     cout << endl;
@@ -40,22 +45,60 @@ bool db_search(string name){
     return false;
 }
 
-void use_db(string name){
+void create_db(){
+    cout << "Enter name of the new database: ";
+    string name;
+    cin >> name;
+    while(db_search(name)){
+        cout << "ERROR! database already exist!" << endl;
+        cout << "Enter another name: ";
+        cin >> name;
+    }
+
+    database new_db(name);
+    cout << name << " successfully created!" << endl;
+
+    
+    cout << "Do you want this database to be public? (y/n): ";
+    string tmp;
+    cin >> tmp; 
+    if (tmp == "Y" || tmp == "y"){
+        new_db.make_public();
+        for (user &usr : users){
+            usr.add_view_perm(name);
+        }
+        cur_user.add_edit_perm(name);
+    } else {
+        new_db.make_private();
+        cur_user.add_view_perm(name);
+        cur_user.add_edit_perm(name);
+    }
+
+    db_name_max_len = max(db_name_max_len, (int)name.size());
+    dbs.push_back(new_db);
+}
+
+void use_db(){
+    cout << "Enter name of database: ";
+    string name;
+    cin >> name;
+    while(!db_search(name)){
+        cout << "ERROR! database not found!" << endl;
+        cout << "Enter another name: ";
+        cin >> name;
+    }
+
     for (auto db : dbs){
         if (db.name() == name){
             db_in_use = true;
             cur_db = db;
+            break;
         }
     }
+
+    cout << name << " is in use!" << endl;
 }
 
-void create_db(string name){
-    db_name_max_len = max(db_name_max_len, (int)name.size());
-    dbs.push_back(database(name));
-}
-
-vector<user> users;
-user cur_user;
 
 void menu(){
 
@@ -64,6 +107,7 @@ void menu(){
         cout << "2. USE DATABASE" << endl;
         cout << "3. SEE A LIST OF DATABASES" << endl;
         cout << "4. EXIT" << endl;
+        // 
     };
 
     display_options();
@@ -72,25 +116,9 @@ void menu(){
 
     while(inp != 4){
         if (inp == 1){
-            cout << "Enter name of the new database: ";
-            string tmp;
-            cin >> tmp;
-            if (db_search(tmp)){
-                cout << "ERROR! database already exist!" << endl;
-            } else {
-                create_db(tmp);
-                cout << tmp << " successfully created!" << endl;
-            }
+            create_db();
         } else if (inp == 2){
-            cout << "Enter name of database: ";
-            string tmp;
-            cin >> tmp;
-            if (!db_search(tmp)){
-                cout << "ERROR! database not found!" << endl;
-            } else {
-                use_db(tmp);
-                cout << tmp << " is in use!" << endl;
-            }
+            use_db();
         } else if (inp == 3){
             list_db();
         } 
@@ -136,6 +164,7 @@ void load(){
     for (int i = 0; i < db_cnt; i++){
         string db_name;
         list_fs >> db_name;
+        db_name_max_len = max(db_name_max_len, (int)db_name.size());
         for (int j = 0; j < 4; j++) db_name.pop_back();
         dbs.push_back(database(db_name));
     }

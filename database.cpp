@@ -20,6 +20,18 @@ namespace db{
         return t;
     }
 
+    bool database::is_public(){
+        return ispub;
+    }
+
+    void database::make_public(){
+        ispub = true;
+    }
+
+    void database::make_private(){
+        ispub = false;
+    }
+
     bool database::create_table(std::string name, std::vector<std::string> cn, std::vector<std::string> ct){
         for (int i = 0; i < (int)t.size(); i++){
             if (name == t[i].table_name()){
@@ -41,4 +53,5 @@ namespace db{
 
         return false;
     }
+
 }
