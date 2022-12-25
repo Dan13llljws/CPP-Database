@@ -8,6 +8,4 @@
 * Each user can edit their own databases and set it to public/private
 * Each user is can view all the public databases
 
-## How to use it 
 
-* WIP
